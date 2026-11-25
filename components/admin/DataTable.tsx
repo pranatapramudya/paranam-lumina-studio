@@ -1,0 +1,121 @@
+"use client";
+
+import { ChevronDown, Inbox } from "lucide-react";
+
+interface Column<T> {
+  key: string;
+  label: string;
+  render?: (item: T, index: number) => React.ReactNode;
+  className?: string;
+}
+
+interface DataTableProps<T> {
+  columns: Column<T>[];
+  data: T[];
+  emptyMessage?: string;
+  emptyDescription?: string;
+}
+
+export function DataTable<T extends Record<string, any>>({
+  columns,
+  data,
+  emptyMessage = "Tidak ada data",
+  emptyDescription = "Data yang Anda cari belum tersedia.",
+}: DataTableProps<T>) {
+  if (data.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center justify-center text-center">
+        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+          <Inbox className="w-7 h-7 text-slate-400" />
+        </div>
+        <p className="text-base font-bold text-slate-700">{emptyMessage}</p>
+        <p className="text-sm text-slate-500 mt-1">{emptyDescription}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+      {/* DESKTOP VIEW */}
+      <div className="hidden md:block overflow-x-auto overflow-hidden rounded-2xl">
+        <table className="min-w-full divide-y divide-slate-100">
+          <thead>
+            <tr className="bg-slate-50/80">
+              {columns.map((col) => (
+                <th
+                  key={col.key}
+                  className={`px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider ${col.className || ""}`}
+                >
+                  <span className="inline-flex items-center gap-1 cursor-default">
+                    {col.label}
+                    <ChevronDown className="w-3 h-3 opacity-40" />
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {data.map((item, idx) => (
+              <tr
+                key={idx}
+                className="hover:bg-slate-50/60 transition-colors group"
+              >
+                {columns.map((col) => (
+                  <td
+                    key={col.key}
+                    className={`px-5 py-4 text-sm text-slate-700 whitespace-nowrap ${col.className || ""}`}
+                  >
+                    {col.render
+                      ? col.render(item, idx)
+                      : String(item[col.key] ?? "")}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* MOBILE CARD VIEW */}
+      <div className="md:hidden flex flex-col p-4 gap-4 bg-slate-50/50">
+        {data.map((item, idx) => (
+          <div
+            key={idx}
+            className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col gap-3"
+          >
+            {columns.map((col) => {
+              const isAction = col.key.toLowerCase().includes("action");
+              if (isAction) {
+                return (
+                  <div
+                    key={col.key}
+                    className="mt-2 pt-3 border-t border-slate-100 flex justify-end w-full"
+                  >
+                    {col.render
+                      ? col.render(item, idx)
+                      : String(item[col.key] ?? "")}
+                  </div>
+                );
+              }
+              return (
+                <div
+                  key={col.key}
+                  className="flex justify-between items-start gap-4"
+                >
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[90px] mt-0.5">
+                    {col.label}
+                  </span>
+                  <div className="text-sm text-slate-800 text-right min-w-0">
+                    {col.render
+                      ? col.render(item, idx)
+                      : String(item[col.key] ?? "")}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

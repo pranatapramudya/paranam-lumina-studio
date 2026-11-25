@@ -1,0 +1,31 @@
+/** @type {import('next').NextConfig} */
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === "development",
+});
+
+const nextConfig = {
+  allowedDevOrigins: ["127.0.0.1", "localhost", "192.168.100.11"],
+  // Paksa Next.js buat nge-transpile Clerk supaya jalurnya nggak korup
+  transpilePackages: ["@clerk/nextjs"],
+  
+  // Matikan fitur-fitur eksperimental yang mungkin bikin bentrok
+  experimental: {
+    // Kosongkan dulu kalau ada isinya
+  },
+  turbopack: {},
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+    ],
+  },
+};
+
+export default withPWA(nextConfig);
