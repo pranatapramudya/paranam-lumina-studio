@@ -165,11 +165,11 @@ export function AdminNavbar({ adminName }: AdminNavbarProps) {
           TOP NAVBAR (Sage Pastel Cerah #C8E0D5 — Tanpa Sidebar)
       ═══════════════════════════════════════════════════════════ */}
       <header className="print:hidden sticky top-0 z-40 w-full bg-[#C8E0D5] border-b border-[#A8C8B8] shadow-sm pt-[env(safe-area-inset-top)]">
-        <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex md:grid md:grid-cols-[1fr_auto_1fr] items-center justify-between gap-4">
           {/* Brand Kiri */}
           <Link
             href="/2026/dashboard"
-            className="flex items-center gap-2.5 shrink-0"
+            className="flex items-center gap-2.5 shrink-0 md:justify-self-start"
           >
             <div className="w-9 h-9 rounded-xl bg-[#4D7762] text-white font-extrabold flex items-center justify-center text-sm shadow-sm">
               PL
@@ -185,7 +185,7 @@ export function AdminNavbar({ adminName }: AdminNavbarProps) {
           </Link>
 
           {/* Menu Tengah (Desktop) dengan Active Pill Menyala */}
-          <nav className="hidden md:flex items-center gap-1.5 bg-[#B4D3C4]/60 p-1.5 rounded-2xl border border-[#A8C8B8]">
+          <nav className="hidden md:flex items-center gap-1.5 bg-[#B4D3C4]/60 p-1.5 rounded-2xl border border-[#A8C8B8] md:justify-self-center">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
@@ -207,7 +207,10 @@ export function AdminNavbar({ adminName }: AdminNavbarProps) {
           </nav>
 
           {/* Kanan: Profile Kasir + Pengaturan + Sign Out */}
-          <div className="relative flex items-center gap-2" ref={dropdownRef}>
+          <div
+            className="relative flex items-center gap-2 md:justify-self-end"
+            ref={dropdownRef}
+          >
             <Link
               href="/"
               target="_blank"

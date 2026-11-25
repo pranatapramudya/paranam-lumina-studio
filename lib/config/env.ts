@@ -10,10 +10,6 @@ function getEnv(key: string, defaultValue?: string): string {
 
 export const ENV = {
   DATABASE_URL: getEnv("DATABASE_URL"),
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: getEnv(
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
-  ),
-  CLERK_SECRET_KEY: getEnv("CLERK_SECRET_KEY"),
   NODE_ENV: process.env.NODE_ENV || "development",
   CLOUDINARY_URL: process.env.CLOUDINARY_URL || "",
 };
