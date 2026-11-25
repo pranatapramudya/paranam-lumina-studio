@@ -1,5 +1,7 @@
 # Paranam Lumina Studio (`paranam-studio`)
 
+> **Licensed by PJTech (PranajayaTech)** • [pranajayatech.online](https://pranajayatech.online)
+
 Aplikasi web booking kelas studio & panel operasional kasir untuk **Paranam Lumina Studio** (Yoga, Pilates & Sound Healing — Depok, Jawa Barat). Dibangun dengan **Next.js App Router**, **Tailwind CSS v4**, dan **PostgreSQL (Neon + Prisma)**.
 
 ## Fitur Utama

@@ -149,28 +149,39 @@ export async function getPublicSchedule(): Promise<{
       prisma.studioSetting.findFirst(),
     ]);
 
-    const slots: PublicSlotItem[] = schedules.map((s) => {
-      const { dayOfWeek, shortDate } = getJakartaDayAndDate(s.date);
-      const currentBookings = s.bookings.length;
-      return {
-        id: s.id,
-        dayOfWeek,
-        shortDate,
-        targetDate: s.date.toISOString(),
-        startTime: s.startTime,
-        endTime: s.endTime,
-        className: s.title,
-        category: s.category,
-        description: s.description,
-        instructorName: s.instructor,
-        room: s.room,
-        imageUrl: getClassImage(s.title, s.category, s.instructorPhoto),
-        price: s.price,
-        currentBookings,
-        maxCapacity: s.maxCapacity,
-        isFull: currentBookings >= s.maxCapacity,
-      };
-    });
+    const nowWibStr = `${nowWib.getUTCFullYear()}-${String(nowWib.getUTCMonth() + 1).padStart(2, "0")}-${String(nowWib.getUTCDate()).padStart(2, "0")}`;
+    const nowWibTime = `${String(nowWib.getUTCHours()).padStart(2, "0")}:${String(nowWib.getUTCMinutes()).padStart(2, "0")}`;
+
+    const slots: PublicSlotItem[] = schedules
+      .filter((s) => {
+        const sWib = new Date(s.date.getTime() + jakartaOffset);
+        const sDateStr = `${sWib.getUTCFullYear()}-${String(sWib.getUTCMonth() + 1).padStart(2, "0")}-${String(sWib.getUTCDate()).padStart(2, "0")}`;
+        if (sDateStr < nowWibStr) return false;
+        if (sDateStr === nowWibStr && s.startTime <= nowWibTime) return false;
+        return true;
+      })
+      .map((s) => {
+        const { dayOfWeek, shortDate } = getJakartaDayAndDate(s.date);
+        const currentBookings = s.bookings.length;
+        return {
+          id: s.id,
+          dayOfWeek,
+          shortDate,
+          targetDate: s.date.toISOString(),
+          startTime: s.startTime,
+          endTime: s.endTime,
+          className: s.title,
+          category: s.category,
+          description: s.description,
+          instructorName: s.instructor,
+          room: s.room,
+          imageUrl: getClassImage(s.title, s.category, s.instructorPhoto),
+          price: s.price,
+          currentBookings,
+          maxCapacity: s.maxCapacity,
+          isFull: currentBookings >= s.maxCapacity,
+        };
+      });
 
     const studioInfo: StudioInfo = {
       studioName: studio?.studioName || "Paranam Lumina Studio",

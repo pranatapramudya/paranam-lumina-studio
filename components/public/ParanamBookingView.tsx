@@ -882,22 +882,22 @@ export default function ParanamBookingView({
                     </div>
                   )}
 
-                  <div className="pt-3 border-t border-[#E6E2D8] flex items-center justify-between">
-                    <div>
+                  <div className="pt-3 border-t border-[#E6E2D8] flex items-center justify-between gap-3">
+                    <div className="min-w-0">
                       <div className="text-[10px] font-bold uppercase text-[#7A8881]">
                         Total Bayar
                       </div>
-                      <div className="text-lg font-black text-[#162620]">
+                      <div className="text-base sm:text-lg font-black text-[#162620] whitespace-nowrap">
                         Rp {selectedSlot.price.toLocaleString("id-ID")}
                       </div>
                     </div>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="px-5 py-3 bg-[#4D7762] hover:bg-[#3B6251] text-white font-bold text-sm rounded-xl shadow-sm flex items-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer touch-manipulation"
+                      className="px-4 sm:px-5 py-3 bg-[#4D7762] hover:bg-[#3B6251] text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 whitespace-nowrap shrink-0 transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer touch-manipulation"
                     >
                       {isSubmitting && (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                       )}
                       {isSubmitting ? "Memproses..." : "Checkout Sekarang"}
                     </button>
@@ -926,30 +926,30 @@ export default function ParanamBookingView({
                   </div>
 
                   <div className="bg-white border border-[#E6E2D8] rounded-2xl p-4 space-y-3">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-[#5D6E66]">Kelas</span>
-                      <span className="font-bold text-[#162620]">
+                    <div className="flex justify-between items-start gap-4 text-xs">
+                      <span className="text-[#5D6E66] shrink-0">Kelas</span>
+                      <span className="font-bold text-[#162620] text-right">
                         {activeBooking.className}
                       </span>
                     </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-[#5D6E66]">Jadwal</span>
-                      <span className="font-bold text-[#162620]">
+                    <div className="flex justify-between items-start gap-4 text-xs">
+                      <span className="text-[#5D6E66] shrink-0">Jadwal</span>
+                      <span className="font-bold text-[#162620] text-right whitespace-nowrap">
                         {activeBooking.dayOfWeek}, {activeBooking.shortDate} •{" "}
                         {activeBooking.startTime}
                       </span>
                     </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-[#5D6E66]">Metode</span>
-                      <span className="font-bold text-[#4D7762]">
+                    <div className="flex justify-between items-center gap-4 text-xs">
+                      <span className="text-[#5D6E66] shrink-0">Metode</span>
+                      <span className="font-bold text-[#4D7762] text-right">
                         {activeBooking.paymentMethod}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center pt-2.5 border-t border-dashed border-[#E6E2D8]">
-                      <span className="text-xs font-bold text-[#5D6E66]">
+                    <div className="flex justify-between items-center gap-4 pt-2.5 border-t border-dashed border-[#E6E2D8]">
+                      <span className="text-xs font-bold text-[#5D6E66] shrink-0">
                         Total Tagihan
                       </span>
-                      <span className="text-lg font-black text-[#162620]">
+                      <span className="text-lg font-black text-[#162620] whitespace-nowrap">
                         Rp {activeBooking.amount.toLocaleString("id-ID")}
                       </span>
                     </div>
@@ -993,14 +993,14 @@ export default function ParanamBookingView({
                     <button
                       onClick={handleConfirmPaid}
                       disabled={isSubmitting}
-                      className="w-full py-3.5 bg-[#4D7762] hover:bg-[#3B6251] text-white font-bold text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer touch-manipulation"
+                      className="w-full py-3.5 px-4 bg-[#4D7762] hover:bg-[#3B6251] text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer touch-manipulation"
                     >
                       {isSubmitting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                       ) : (
-                        <CheckCircle2 className="w-4 h-4" />
+                        <CheckCircle2 className="w-4 h-4 shrink-0" />
                       )}
-                      Konfirmasi Sudah Bayar & Ambil E-Ticket
+                      <span>Konfirmasi & Ambil E-Ticket</span>
                     </button>
 
                     <button

@@ -62,27 +62,24 @@ export function Pagination({
       </div>
 
       {/* Mobile Prev/Next */}
-      <div className="flex w-full sm:hidden items-center justify-between gap-2">
+      <div className="flex w-full sm:hidden items-center justify-between gap-2.5">
         <button
           type="button"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl border border-[#DCD7CA] bg-[#F6F4EF] px-4 py-2.5 text-xs font-bold text-[#162620] hover:bg-[#E9EFEA] disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
+          className="flex-1 inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-xl border border-[#DCD7CA] bg-[#F6F4EF] px-3 py-2.5 text-xs font-bold text-[#162620] hover:bg-[#E9EFEA] disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-4 w-4 shrink-0" />
           Sebelumnya
         </button>
-        <span className="px-2.5 text-xs font-extrabold text-[#162620]">
-          {currentPage} / {totalPages}
-        </span>
         <button
           type="button"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-[#4D7762] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#3F6451] disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
+          className="flex-1 inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-xl bg-[#4D7762] px-3 py-2.5 text-xs font-bold text-white hover:bg-[#3F6451] disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
         >
           Selanjutnya
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4 shrink-0" />
         </button>
       </div>
 
