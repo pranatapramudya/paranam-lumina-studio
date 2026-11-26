@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   History,
   XCircle,
+  Download,
 } from "lucide-react";
 
 interface InitialResult {
@@ -85,6 +86,217 @@ export default function TiketClient({
     initialResult?.error || null,
   );
   const [origin, setOrigin] = useState("");
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const downloadTicketPNG = async (t: GuestTicketItem) => {
+    setDownloadingId(t.id);
+    try {
+      // --- render QR SVG to image ---
+      const qrEl = document.getElementById(`qr-${t.id}`) as SVGElement | null;
+      let qrDataUrl = "";
+      if (qrEl) {
+        const svgData = new XMLSerializer().serializeToString(qrEl);
+        const svgBlob = new Blob([svgData], {
+          type: "image/svg+xml;charset=utf-8",
+        });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        const qrImg = new Image();
+        await new Promise<void>((res) => {
+          qrImg.onload = () => res();
+          qrImg.src = svgUrl;
+        });
+        const tmpCanvas = document.createElement("canvas");
+        tmpCanvas.width = 200;
+        tmpCanvas.height = 200;
+        const tCtx = tmpCanvas.getContext("2d")!;
+        tCtx.fillStyle = "#ffffff";
+        tCtx.fillRect(0, 0, 200, 200);
+        tCtx.drawImage(qrImg, 10, 10, 180, 180);
+        qrDataUrl = tmpCanvas.toDataURL("image/png");
+        URL.revokeObjectURL(svgUrl);
+      }
+
+      // --- build main card canvas ---
+      const W = 640;
+      const H = qrDataUrl ? 580 : 420;
+      const canvas = document.createElement("canvas");
+      const dpr = 2;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      const ctx = canvas.getContext("2d")!;
+      ctx.scale(dpr, dpr);
+
+      // Background
+      ctx.fillStyle = "#F6F4EF";
+      ctx.fillRect(0, 0, W, H);
+
+      // Card
+      const PAD = 24;
+      const cardW = W - PAD * 2;
+      const cardH = H - PAD * 2;
+      ctx.fillStyle = "#ffffff";
+      const r = 24;
+      ctx.beginPath();
+      ctx.moveTo(PAD + r, PAD);
+      ctx.lineTo(PAD + cardW - r, PAD);
+      ctx.quadraticCurveTo(PAD + cardW, PAD, PAD + cardW, PAD + r);
+      ctx.lineTo(PAD + cardW, PAD + cardH - r);
+      ctx.quadraticCurveTo(
+        PAD + cardW,
+        PAD + cardH,
+        PAD + cardW - r,
+        PAD + cardH,
+      );
+      ctx.lineTo(PAD + r, PAD + cardH);
+      ctx.quadraticCurveTo(PAD, PAD + cardH, PAD, PAD + cardH - r);
+      ctx.lineTo(PAD, PAD + r);
+      ctx.quadraticCurveTo(PAD, PAD, PAD + r, PAD);
+      ctx.closePath();
+      ctx.fill();
+
+      // Header strip
+      ctx.fillStyle = "#4D7762";
+      ctx.beginPath();
+      ctx.moveTo(PAD + r, PAD);
+      ctx.lineTo(PAD + cardW - r, PAD);
+      ctx.quadraticCurveTo(PAD + cardW, PAD, PAD + cardW, PAD + r);
+      ctx.lineTo(PAD + cardW, PAD + 90);
+      ctx.lineTo(PAD, PAD + 90);
+      ctx.lineTo(PAD, PAD + r);
+      ctx.quadraticCurveTo(PAD, PAD, PAD + r, PAD);
+      ctx.closePath();
+      ctx.fill();
+
+      // Studio name
+      ctx.fillStyle = "rgba(255,255,255,0.75)";
+      ctx.font = "bold 11px Arial";
+      ctx.fillText("PARANAM LUMINA STUDIO • E-TICKET", PAD + 20, PAD + 28);
+
+      // Class name
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 22px Arial";
+      const maxW = cardW - 160;
+      let className = t.className;
+      while (ctx.measureText(className).width > maxW && className.length > 10) {
+        className = className.slice(0, -1);
+      }
+      if (className !== t.className) className += "…";
+      ctx.fillText(className, PAD + 20, PAD + 58);
+
+      // Date & time
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      ctx.font = "12px Arial";
+      ctx.fillText(
+        `${t.dayOfWeek}, ${t.shortDate} • ${t.startTime} WIB`,
+        PAD + 20,
+        PAD + 80,
+      );
+
+      // Booking code badge
+      ctx.fillStyle = "#ffffff";
+      const codeX = PAD + cardW - 20 - 110;
+      const codeY = PAD + 32;
+      ctx.beginPath();
+      ctx.roundRect(codeX, codeY, 110, 32, 16);
+      ctx.fill();
+      ctx.fillStyle = "#2A5040";
+      ctx.font = "bold 11px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(t.bookingCode, codeX + 55, codeY + 21);
+      ctx.textAlign = "left";
+
+      // Body text
+      let bodyY = PAD + 110;
+      ctx.fillStyle = "#4D7762";
+      ctx.font = "bold 11px Arial";
+      ctx.fillText("INSTRUKTUR", PAD + 20, bodyY);
+      ctx.fillStyle = "#162620";
+      ctx.font = "bold 15px Arial";
+      ctx.fillText(t.instructorName, PAD + 20, bodyY + 20);
+
+      bodyY += 50;
+      ctx.fillStyle = "#4D7762";
+      ctx.font = "bold 11px Arial";
+      ctx.fillText("PESERTA", PAD + 20, bodyY);
+      ctx.fillStyle = "#162620";
+      ctx.font = "bold 15px Arial";
+      ctx.fillText(t.memberName, PAD + 20, bodyY + 20);
+
+      bodyY += 50;
+      ctx.fillStyle = "#4D7762";
+      ctx.font = "bold 11px Arial";
+      ctx.fillText("TOTAL BAYAR", PAD + 20, bodyY);
+      ctx.fillStyle = "#162620";
+      ctx.font = "bold 15px Arial";
+      ctx.fillText(
+        `Rp ${t.amount.toLocaleString("id-ID")}`,
+        PAD + 20,
+        bodyY + 20,
+      );
+
+      // Dashed divider
+      bodyY += 50;
+      ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = "#E6E2D8";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(PAD + 20, bodyY);
+      ctx.lineTo(PAD + cardW - 20, bodyY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Status badge
+      bodyY += 20;
+      ctx.fillStyle = "#E9EFEA";
+      ctx.beginPath();
+      ctx.roundRect(PAD + 20, bodyY - 14, 180, 26, 13);
+      ctx.fill();
+      ctx.fillStyle = "#254336";
+      ctx.font = "bold 11px Arial";
+      ctx.fillText("✓  LUNAS • E-Ticket Aktif", PAD + 36, bodyY + 5);
+
+      // QR image
+      if (qrDataUrl) {
+        const qrImg2 = new Image();
+        await new Promise<void>((res) => {
+          qrImg2.onload = () => res();
+          qrImg2.src = qrDataUrl;
+        });
+        const qrSize = 160;
+        const qrX = PAD + cardW - 20 - qrSize;
+        const qrTop = PAD + 108;
+        // white box
+        ctx.fillStyle = "#F6F4EF";
+        ctx.beginPath();
+        ctx.roundRect(qrX - 10, qrTop - 10, qrSize + 20, qrSize + 30, 14);
+        ctx.fill();
+        ctx.drawImage(qrImg2, qrX, qrTop, qrSize, qrSize);
+        ctx.fillStyle = "#5D6E66";
+        ctx.font = "10px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Scan di studio", qrX + qrSize / 2, qrTop + qrSize + 16);
+        ctx.textAlign = "left";
+      }
+
+      // Footer
+      const footerY = PAD + cardH - 24;
+      ctx.fillStyle = "#7A8881";
+      ctx.font = "10px Arial";
+      ctx.fillText(
+        "Diterbitkan oleh PranajayaTech · pranajayatech.online",
+        PAD + 20,
+        footerY,
+      );
+
+      // Download
+      const link = document.createElement("a");
+      link.download = `E-Ticket-${t.bookingCode}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const fetchTickets = async (targetPhone: string) => {
     if (!targetPhone.trim()) return;
@@ -426,6 +638,7 @@ export default function TiketClient({
                               {!isAttended && (
                                 <div className="w-40 h-40 bg-white p-3 rounded-2xl border border-[#E6E2D8] shadow-inner flex items-center justify-center mb-3">
                                   <QRCode
+                                    id={`qr-${t.id}`}
                                     value={`${origin}/verify/${t.bookingCode}`}
                                     size={140}
                                     style={{
@@ -444,6 +657,23 @@ export default function TiketClient({
                                   : "Tunjukkan QR ini ke kasir/studio"}
                               </div>
                             </div>
+
+                            {!isAttended && (
+                              <button
+                                onClick={() => downloadTicketPNG(t)}
+                                disabled={downloadingId === t.id}
+                                className="mt-3 w-full py-2.5 bg-[#F6F4EF] hover:bg-[#EAE7DE] border border-[#E6E2D8] text-[#2A5040] font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 touch-manipulation transition-colors"
+                              >
+                                {downloadingId === t.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Download className="w-3.5 h-3.5" />
+                                )}
+                                {downloadingId === t.id
+                                  ? "Menyiapkan..."
+                                  : "Simpan E-Ticket (PNG)"}
+                              </button>
+                            )}
 
                             <div className="mt-4 pt-3 border-t border-[#F0EDE5] w-full flex items-center justify-between text-xs">
                               <span className="text-[#7A8881] font-medium">
