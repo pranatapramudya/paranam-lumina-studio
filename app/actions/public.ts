@@ -63,6 +63,15 @@ function getJakartaDayAndDate(date: Date) {
   return { dayOfWeek, shortDate };
 }
 
+export interface PublicPackageItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  totalSessions: number;
+  validityDays: number;
+}
+
 export interface StudioInfo {
   studioName: string;
   tagline: string;
@@ -110,6 +119,7 @@ async function expireStaleGuestHolds() {
 export async function getPublicSchedule(): Promise<{
   success: boolean;
   slots: PublicSlotItem[];
+  packages: PublicPackageItem[];
   studioInfo: StudioInfo;
   error?: string;
 }> {
@@ -129,7 +139,7 @@ export async function getPublicSchedule(): Promise<{
       ) - jakartaOffset,
     );
 
-    const [schedules, studio] = await Promise.all([
+    const [schedules, studio, packagesRaw] = await Promise.all([
       prisma.classSchedule.findMany({
         where: {
           status: "UPCOMING",
@@ -147,6 +157,10 @@ export async function getPublicSchedule(): Promise<{
         orderBy: [{ date: "asc" }, { startTime: "asc" }],
       }),
       prisma.studioSetting.findFirst(),
+      prisma.package.findMany({
+        where: { isActive: true },
+        orderBy: { price: "asc" },
+      }),
     ]);
 
     const nowWibStr = `${nowWib.getUTCFullYear()}-${String(nowWib.getUTCMonth() + 1).padStart(2, "0")}-${String(nowWib.getUTCDate()).padStart(2, "0")}`;
@@ -192,11 +206,21 @@ export async function getPublicSchedule(): Promise<{
       bcaAccountName: studio?.bcaAccountName || "Paranam Lumina Studio",
     };
 
-    return { success: true, slots, studioInfo };
+    const packages: PublicPackageItem[] = packagesRaw.map((p) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description || "",
+      price: p.price,
+      totalSessions: p.totalSessions,
+      validityDays: p.validityDays,
+    }));
+
+    return { success: true, slots, studioInfo, packages };
   } catch (error: any) {
     return {
       success: false,
       slots: [],
+      packages: [],
       studioInfo: {
         studioName: "Paranam Lumina Studio",
         tagline: "Yoga, Pilates & Sound Healing",

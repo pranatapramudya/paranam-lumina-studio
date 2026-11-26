@@ -32,6 +32,19 @@ export default async function AdminLayout({
           <RoleToast />
         </Suspense>
       </main>
+      <footer className="hidden md:block border-t border-[#E6E2D8] py-3 text-center bg-[#F1EEE7]">
+        <p className="text-[10px] text-[#9CA8A0]">
+          Support by{" "}
+          <a
+            href="https://pranajayatech.online"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-[#4D7762] transition-colors"
+          >
+            PranajayaTech
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }

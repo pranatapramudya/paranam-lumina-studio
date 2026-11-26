@@ -9,6 +9,7 @@ export default async function Home() {
     <ParanamBookingView
       initialSlots={res.slots || []}
       studioInfo={res.studioInfo}
+      initialPackages={res.packages || []}
     />
   );
 }

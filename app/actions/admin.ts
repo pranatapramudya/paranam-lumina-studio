@@ -460,7 +460,7 @@ export async function cloneNextWeekSchedules() {
 // Transaksi Kasir Langsung (Tunai / Non-Cashless / Walk-in) untuk Kelas atau Paket
 export async function createCashierBooking(data: {
   customerName: string;
-  customerPhone: string;
+  customerPhone?: string;
   scheduleId: string;
   packageName?: string;
   amount: number;
@@ -469,13 +469,21 @@ export async function createCashierBooking(data: {
   await verifyAdmin();
   try {
     const cleanName = data.customerName.trim();
-    const cleanPhone = data.customerPhone.replace(/[^0-9]/g, "");
+    const rawDigits = (data.customerPhone || "").replace(/[^0-9]/g, "");
     if (!cleanName || cleanName.length < 2) {
       return { success: false, error: "Nama tamu wajib diisi." };
     }
-    if (!cleanPhone || cleanPhone.length < 8) {
-      return { success: false, error: "Nomor WhatsApp minimal 8 digit." };
+    if (rawDigits.length > 0 && rawDigits.length < 8) {
+      return {
+        success: false,
+        error:
+          "Nomor WhatsApp minimal 8 digit (atau kosongkan jika tamu tidak punya HP).",
+      };
     }
+    const cleanPhone =
+      rawDigits.length >= 8
+        ? rawDigits
+        : `WALKIN-${Date.now().toString().slice(-6)}`;
     if (!data.scheduleId) {
       return { success: false, error: "Pilih jadwal kelas terlebih dahulu." };
     }

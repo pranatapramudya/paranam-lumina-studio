@@ -1109,12 +1109,14 @@ export default function TransactionsClient({
                 </div>
                 <div>
                   <label className="font-bold text-[#4C5C54] block mb-1">
-                    No. WhatsApp *
+                    No. WhatsApp{" "}
+                    <span className="font-normal text-[#7A8881]">
+                      (Opsional)
+                    </span>
                   </label>
                   <input
                     type="tel"
-                    required
-                    placeholder="0812xxxx"
+                    placeholder="Kosongkan jika tamu tanpa HP"
                     value={cashierPhone}
                     onChange={(e) => setCashierPhone(e.target.value)}
                     className="w-full px-3 py-2.5 bg-[#F6F4EF] border border-[#DCD7CA] rounded-xl font-semibold text-[#162620]"
@@ -1219,102 +1221,165 @@ export default function TransactionsClient({
                 )}
               </div>
 
-              {/* Modern Selector: Pilihan Paket / Tarif */}
-              <div className="relative">
-                <label className="font-bold text-[#4C5C54] block mb-1">
-                  Pilihan Paket / Tarif
+              {/* 2 Opsi Jenis Pembayaran Kasir: Per Kelas vs Paket & Tarif */}
+              <div>
+                <label className="font-bold text-[#4C5C54] block mb-1.5">
+                  Jenis Pembayaran *
                 </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPackagePickerOpen((v) => !v);
-                    setSchedulePickerOpen(false);
-                  }}
-                  className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-[#F6F4EF] hover:bg-[#E9EFEA]/60 border border-[#DCD7CA] rounded-xl text-left transition-colors cursor-pointer"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-extrabold text-[#162620] truncate">
-                      {selectedPackage
-                        ? `Paket: ${selectedPackage.name}`
-                        : "Single Visit / Drop-in"}
-                    </p>
-                    <p className="text-[11px] text-[#4D7762] font-bold mt-0.5">
-                      {selectedPackage
-                        ? `${selectedPackage.totalSessions} Sesi • `
-                        : "1x Pertemuan • "}
-                      Rp {cashierAmount.toLocaleString("id-ID")}
-                    </p>
-                  </div>
-                  <ChevronDown
-                    className={`w-4 h-4 text-[#5D6E66] shrink-0 transition-transform ${
-                      packagePickerOpen ? "rotate-180" : ""
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCashierPackageId("DROP_IN");
+                      setPackagePickerOpen(false);
+                    }}
+                    className={`py-2.5 px-3 rounded-xl font-bold text-left border transition-colors cursor-pointer ${
+                      cashierPackageId === "DROP_IN"
+                        ? "bg-[#4D7762] text-white border-[#4D7762]"
+                        : "bg-[#F6F4EF] text-[#162620] border-[#DCD7CA] hover:border-[#4D7762]"
                     }`}
-                  />
-                </button>
-
-                {packagePickerOpen && (
-                  <div className="mt-1.5 max-h-52 overflow-y-auto bg-white border border-[#DCD7CA] rounded-2xl shadow-xl p-1.5 space-y-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCashierPackageId("DROP_IN");
-                        setPackagePickerOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between gap-2 p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
+                  >
+                    <p className="text-xs font-extrabold">Per Jadwal Kelas</p>
+                    <p
+                      className={`text-[10px] mt-0.5 ${
                         cashierPackageId === "DROP_IN"
-                          ? "bg-[#4D7762] text-white"
-                          : "hover:bg-[#F6F4EF] text-[#162620]"
+                          ? "text-white/85"
+                          : "text-[#5D6E66]"
                       }`}
                     >
-                      <div>
-                        <p className="font-bold">Single Visit / Drop-in</p>
-                        <p
-                          className={`text-[10px] ${cashierPackageId === "DROP_IN" ? "text-white/85" : "text-[#5D6E66]"}`}
-                        >
-                          1x Pertemuan sesuai tarif kelas
-                        </p>
-                      </div>
-                      <span className="font-extrabold shrink-0">
-                        Rp{" "}
-                        {(selectedSchedule?.price || 90000).toLocaleString(
-                          "id-ID",
-                        )}
-                      </span>
-                    </button>
-
-                    {activePackages.map((p) => {
-                      const isSelected = cashierPackageId === p.id;
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => {
-                            setCashierPackageId(p.id);
-                            setPackagePickerOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between gap-2 p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
-                            isSelected
-                              ? "bg-[#4D7762] text-white"
-                              : "hover:bg-[#F6F4EF] text-[#162620]"
-                          }`}
-                        >
-                          <div className="min-w-0">
-                            <p className="font-bold truncate">{p.name}</p>
-                            <p
-                              className={`text-[10px] ${isSelected ? "text-white/85" : "text-[#5D6E66]"}`}
-                            >
-                              {p.totalSessions} Sesi Studio
-                            </p>
-                          </div>
-                          <span className="font-extrabold shrink-0">
-                            Rp {p.price.toLocaleString("id-ID")}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                      Tanpa paket · Tarif kelas
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (cashierPackageId === "DROP_IN" && activePackages[0]) {
+                        setCashierPackageId(activePackages[0].id);
+                      }
+                      setPackagePickerOpen(true);
+                      setSchedulePickerOpen(false);
+                    }}
+                    disabled={activePackages.length === 0}
+                    className={`py-2.5 px-3 rounded-xl font-bold text-left border transition-colors cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
+                      cashierPackageId !== "DROP_IN"
+                        ? "bg-[#4D7762] text-white border-[#4D7762]"
+                        : "bg-[#F6F4EF] text-[#162620] border-[#DCD7CA] hover:border-[#4D7762]"
+                    }`}
+                  >
+                    <p className="text-xs font-extrabold">Paket & Tarif</p>
+                    <p
+                      className={`text-[10px] mt-0.5 ${
+                        cashierPackageId !== "DROP_IN"
+                          ? "text-white/85"
+                          : "text-[#5D6E66]"
+                      }`}
+                    >
+                      {activePackages.length > 0
+                        ? `${activePackages.length} paket tersedia`
+                        : "Belum ada paket"}
+                    </p>
+                  </button>
+                </div>
               </div>
+
+              {/* Modern Selector: Pilihan Paket / Tarif (hanya tampil saat mode Paket dipilih) */}
+              {cashierPackageId !== "DROP_IN" && (
+                <div className="relative">
+                  <label className="font-bold text-[#4C5C54] block mb-1">
+                    Pilih Paket Sesi *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPackagePickerOpen((v) => !v);
+                      setSchedulePickerOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-[#F6F4EF] hover:bg-[#E9EFEA]/60 border border-[#DCD7CA] rounded-xl text-left transition-colors cursor-pointer"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-extrabold text-[#162620] truncate">
+                        {selectedPackage
+                          ? `Paket: ${selectedPackage.name}`
+                          : "Single Visit / Drop-in"}
+                      </p>
+                      <p className="text-[11px] text-[#4D7762] font-bold mt-0.5">
+                        {selectedPackage
+                          ? `${selectedPackage.totalSessions} Sesi • `
+                          : "1x Pertemuan • "}
+                        Rp {cashierAmount.toLocaleString("id-ID")}
+                      </p>
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 text-[#5D6E66] shrink-0 transition-transform ${
+                        packagePickerOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {packagePickerOpen && (
+                    <div className="mt-1.5 max-h-52 overflow-y-auto bg-white border border-[#DCD7CA] rounded-2xl shadow-xl p-1.5 space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCashierPackageId("DROP_IN");
+                          setPackagePickerOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between gap-2 p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
+                          cashierPackageId === "DROP_IN"
+                            ? "bg-[#4D7762] text-white"
+                            : "hover:bg-[#F6F4EF] text-[#162620]"
+                        }`}
+                      >
+                        <div>
+                          <p className="font-bold">Single Visit / Drop-in</p>
+                          <p
+                            className={`text-[10px] ${cashierPackageId === "DROP_IN" ? "text-white/85" : "text-[#5D6E66]"}`}
+                          >
+                            1x Pertemuan sesuai tarif kelas
+                          </p>
+                        </div>
+                        <span className="font-extrabold shrink-0">
+                          Rp{" "}
+                          {(selectedSchedule?.price || 90000).toLocaleString(
+                            "id-ID",
+                          )}
+                        </span>
+                      </button>
+
+                      {activePackages.map((p) => {
+                        const isSelected = cashierPackageId === p.id;
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => {
+                              setCashierPackageId(p.id);
+                              setPackagePickerOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between gap-2 p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
+                              isSelected
+                                ? "bg-[#4D7762] text-white"
+                                : "hover:bg-[#F6F4EF] text-[#162620]"
+                            }`}
+                          >
+                            <div className="min-w-0">
+                              <p className="font-bold truncate">{p.name}</p>
+                              <p
+                                className={`text-[10px] ${isSelected ? "text-white/85" : "text-[#5D6E66]"}`}
+                              >
+                                {p.totalSessions} Sesi Studio
+                              </p>
+                            </div>
+                            <span className="font-extrabold shrink-0">
+                              Rp {p.price.toLocaleString("id-ID")}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label className="font-bold text-[#4C5C54] block mb-1.5">
