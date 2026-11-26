@@ -1020,12 +1020,12 @@ export default function ClassesClient({
           TAB 2: KELOLA JADWAL KELAS
       ══════════════════════════════════════════════════════════ */}
       {activeTab === "JADWAL" && (
-        <div className="space-y-6">
-          {/* Form Tambah / Edit — full width, card lebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Form Tambah / Edit */}
           <form
             id="class-form"
             onSubmit={handleSubmitSchedule}
-            className="bg-white rounded-2xl border border-[#E6E2D8] p-6 shadow-sm space-y-5"
+            className="lg:col-span-4 bg-white rounded-2xl border border-[#E6E2D8] p-4 sm:p-6 shadow-sm space-y-5"
           >
             <div className="flex items-center justify-between">
               <h2 className="text-base font-extrabold text-[#162620] flex items-center gap-2">
@@ -1265,7 +1265,7 @@ export default function ClassesClient({
           </form>
 
           {/* Daftar Kelas */}
-          <div className="space-y-4">
+          <div className="lg:col-span-8 space-y-4">
             {" "}
             {/* Search Jadwal + Clone Mingguan */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
