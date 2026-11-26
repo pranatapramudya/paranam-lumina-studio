@@ -160,8 +160,9 @@ export function DateRangePicker({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[calc(100vw-2rem)] sm:w-auto max-h-[80vh] overflow-y-auto p-0 flex flex-col sm:flex-row"
+          className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:w-auto max-h-[80vh] overflow-y-auto p-0 flex flex-col sm:flex-row"
           align="end"
+          collisionPadding={16}
         >
           <div className="grid grid-cols-2 sm:flex sm:flex-col gap-2 sm:gap-1 p-3 border-b sm:border-b-0 sm:border-r border-border sm:min-w-[150px] bg-slate-50/50">
             {presets.map((preset) => (

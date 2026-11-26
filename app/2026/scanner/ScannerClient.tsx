@@ -186,7 +186,7 @@ export default function ScannerClient({
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-3.5 sm:p-6 lg:p-8 space-y-6">
       <AdminToast
         message={toast.message}
         type={toast.type}
@@ -206,7 +206,10 @@ export default function ScannerClient({
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
         <div className="xl:col-span-3 space-y-4">
-          <div className="bg-[#162620] rounded-2xl aspect-[4/3] min-h-[340px] sm:min-h-[440px] relative overflow-hidden shadow-xl">
+          <div
+            className="bg-[#162620] rounded-2xl overflow-hidden shadow-xl relative w-full"
+            style={{ aspectRatio: "4/3" }}
+          >
             {cameraError ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
                 <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
@@ -217,7 +220,7 @@ export default function ScannerClient({
             ) : (
               <div
                 id="qr-reader"
-                className="w-full h-full [&_video]:!w-full [&_video]:!h-full [&_video]:!object-cover"
+                className="absolute inset-0 w-full h-full [&>*]:!w-full [&>*]:!h-full [&_video]:!w-full [&_video]:!h-full [&_video]:!object-cover [&_video]:!max-w-none [&_img]:hidden [&_div[style]]:!border-0 [&_div[style]]:!padding-0"
               />
             )}
             <div id="qr-file-tmp" className="hidden" />
@@ -331,8 +334,8 @@ export default function ScannerClient({
                   Total: {scanHistory.length} hadir
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="relative">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-initial">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9BA8A0]" />
                   <input
                     type="text"
@@ -342,7 +345,7 @@ export default function ScannerClient({
                       setHistorySearch(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="pl-8 pr-3 py-1.5 bg-white border border-[#E6E2D8] rounded-xl text-xs font-semibold text-[#162620] outline-none focus:ring-2 focus:ring-[#4D7762] w-44"
+                    className="pl-8 pr-3 py-2 sm:py-1.5 bg-white border border-[#E6E2D8] rounded-xl text-xs font-semibold text-[#162620] outline-none focus:ring-2 focus:ring-[#4D7762] w-full sm:w-44"
                   />
                 </div>
                 <DateRangePicker />

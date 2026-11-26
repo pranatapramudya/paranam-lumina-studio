@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import QRCode from "react-qr-code";
 import {
@@ -67,14 +68,35 @@ export default function ParanamBookingView({
   initialSlots: PublicSlotItem[];
   studioInfo?: StudioInfo;
 }) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
   const [slots, setSlots] = useState<PublicSlotItem[]>(initialSlots);
   const [selectedInstructor, setSelectedInstructor] = useState("Semua");
   const [selectedDay, setSelectedDay] = useState("Semua");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Sync slots ketika silent refresh dari server selesai
+  useEffect(() => {
+    setSlots(initialSlots);
+  }, [initialSlots]);
+
   // Modal state
   const [selectedSlot, setSelectedSlot] = useState<PublicSlotItem | null>(null);
   const [step, setStep] = useState<ModalStep>("FORM");
+
+  // Silent auto-refresh tiap 3 menit tanpa kedip (jeda saat modal booking aktif)
+  useEffect(() => {
+    if (selectedSlot) return;
+    const interval = setInterval(
+      () => {
+        startTransition(() => {
+          router.refresh();
+        });
+      },
+      3 * 60 * 1000,
+    );
+    return () => clearInterval(interval);
+  }, [selectedSlot, router]);
 
   // Form state
   const [name, setName] = useState("");

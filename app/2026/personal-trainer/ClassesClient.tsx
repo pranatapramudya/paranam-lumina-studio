@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import type React from "react";
 import { AdminToast, ToastType } from "@/components/admin/AdminToast";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useResponsivePagination } from "@/hooks/useResponsivePagination";
@@ -88,12 +89,33 @@ function ModernTime24Picker({
 }) {
   const [open, setOpen] = useState(false);
   const [hh, mm] = (value || "08:00").split(":");
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [dropStyle, setDropStyle] = useState<React.CSSProperties>({});
+
+  const openPicker = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const above = spaceBelow < 220;
+      setDropStyle({
+        position: "fixed",
+        left: rect.left,
+        width: Math.max(rect.width, 240),
+        ...(above
+          ? { bottom: window.innerHeight - rect.top + 4, top: "auto" }
+          : { top: rect.bottom + 4, bottom: "auto" }),
+        zIndex: 9999,
+      });
+    }
+    setOpen((v) => !v);
+  };
 
   return (
     <div className="relative">
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={openPicker}
         className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-[#F6F4EF] hover:bg-[#E9EFEA]/60 border border-[#DCD7CA] rounded-xl font-bold text-[#162620] transition-colors cursor-pointer"
       >
         <span className="inline-flex items-center gap-1.5">
@@ -109,8 +131,14 @@ function ModernTime24Picker({
 
       {open && (
         <>
-          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-1.5 w-60 bg-white border border-[#E6E2D8] rounded-2xl shadow-xl p-3 z-40 space-y-2.5">
+          <div
+            className="fixed inset-0 z-[9998]"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            className="bg-white border border-[#E6E2D8] rounded-2xl shadow-2xl p-3 space-y-2.5 overflow-y-auto"
+            style={{ ...dropStyle, maxHeight: 320 }}
+          >
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-[#5D6E66] mb-1.5">
                 Pilih Jam (24 Jam)
@@ -575,7 +603,7 @@ export default function ClassesClient({
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-3.5 sm:p-6 lg:p-8 space-y-6">
       <AdminToast
         message={toast.message}
         type={toast.type}
@@ -707,148 +735,275 @@ export default function ClassesClient({
             )}
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#E6E2D8] shadow-sm overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-[#E6E2D8] bg-[#F6F4EF] text-[11px] font-bold uppercase tracking-wider text-[#5D6E66]">
-                  <th className="py-3.5 px-4">Kode</th>
-                  <th className="py-3.5 px-4">Pemesan & WA</th>
-                  <th className="py-3.5 px-4">Kelas & Jadwal</th>
-                  <th className="py-3.5 px-4">Pembayaran</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Aksi Kasir</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F0EDE5] text-xs">
-                {paginatedBookings.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="py-10 text-center text-[#5D6E66]"
-                    >
-                      {bookingSearch
-                        ? `Tidak ada booking untuk "${bookingSearch}".`
-                        : "Belum ada data booking untuk filter ini."}
-                    </td>
+          {/* Mobile card list + Desktop table */}
+          <div className="bg-white rounded-2xl border border-[#E6E2D8] shadow-sm overflow-hidden">
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[700px]">
+                <thead>
+                  <tr className="border-b border-[#E6E2D8] bg-[#F6F4EF] text-[11px] font-bold uppercase tracking-wider text-[#5D6E66]">
+                    <th className="py-3.5 px-4">Kode</th>
+                    <th className="py-3.5 px-4">Pemesan & WA</th>
+                    <th className="py-3.5 px-4">Kelas & Jadwal</th>
+                    <th className="py-3.5 px-4">Pembayaran</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4 text-right">Aksi Kasir</th>
                   </tr>
-                ) : (
-                  paginatedBookings.map((b) => {
-                    const isCancelled = b.attendanceStatus === "CANCELLED";
-                    const isPaid = b.paymentStatus === "PAID";
-                    const isAttended = b.attendanceStatus === "ATTENDED";
-                    return (
-                      <tr
-                        key={b.id}
-                        className={
-                          isCancelled ? "opacity-50" : "hover:bg-[#FAF9F6]"
-                        }
+                </thead>
+                <tbody className="divide-y divide-[#F0EDE5] text-xs">
+                  {paginatedBookings.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="py-10 text-center text-[#5D6E66]"
                       >
-                        <td className="py-3.5 px-4 font-mono font-bold text-[#162620]">
-                          {b.bookingCode}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-[#162620]">
-                            {b.customerName}
-                          </div>
-                          <div className="text-[11px] text-[#5D6E66]">
-                            {b.customerPhone}
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-[#162620]">
-                            {b.className}
-                          </div>
-                          <div className="text-[11px] text-[#5D6E66]">
-                            {b.instructor} • {formatWibDate(b.scheduleDateIso)}{" "}
-                            ({formatWibTime(b.startTime)})
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-[#162620]">
-                            Rp {b.amount.toLocaleString("id-ID")}
-                          </div>
-                          <div className="text-[11px] text-[#5D6E66]">
-                            {METHOD_LABEL[b.paymentMethod] || b.paymentMethod}
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 space-y-1">
-                          <div>
-                            <span
-                              className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                isCancelled
-                                  ? "bg-rose-50 text-rose-600"
-                                  : isPaid
-                                    ? "bg-[#E9EFEA] text-[#254336]"
-                                    : "bg-amber-50 text-amber-700"
-                              }`}
-                            >
-                              {isCancelled
-                                ? "BATAL"
-                                : isPaid
-                                  ? "LUNAS"
-                                  : "PENDING"}
-                            </span>
-                          </div>
-                          {!isCancelled && (
+                        {bookingSearch
+                          ? `Tidak ada booking untuk "${bookingSearch}".`
+                          : "Belum ada data booking untuk filter ini."}
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedBookings.map((b) => {
+                      const isCancelled = b.attendanceStatus === "CANCELLED";
+                      const isPaid = b.paymentStatus === "PAID";
+                      const isAttended = b.attendanceStatus === "ATTENDED";
+                      return (
+                        <tr
+                          key={b.id}
+                          className={
+                            isCancelled ? "opacity-50" : "hover:bg-[#FAF9F6]"
+                          }
+                        >
+                          <td className="py-3.5 px-4 font-mono font-bold text-[#162620]">
+                            {b.bookingCode}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-[#162620]">
+                              {b.customerName}
+                            </div>
+                            <div className="text-[11px] text-[#5D6E66]">
+                              {b.customerPhone}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-[#162620]">
+                              {b.className}
+                            </div>
+                            <div className="text-[11px] text-[#5D6E66]">
+                              {b.instructor} •{" "}
+                              {formatWibDate(b.scheduleDateIso)} (
+                              {formatWibTime(b.startTime)})
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-[#162620]">
+                              Rp {b.amount.toLocaleString("id-ID")}
+                            </div>
+                            <div className="text-[11px] text-[#5D6E66]">
+                              {METHOD_LABEL[b.paymentMethod] || b.paymentMethod}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4 space-y-1">
                             <div>
                               <span
                                 className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                  isAttended
-                                    ? "bg-emerald-100 text-emerald-800"
-                                    : "bg-slate-100 text-slate-600"
+                                  isCancelled
+                                    ? "bg-rose-50 text-rose-600"
+                                    : isPaid
+                                      ? "bg-[#E9EFEA] text-[#254336]"
+                                      : "bg-amber-50 text-amber-700"
                                 }`}
                               >
-                                {isAttended ? "HADIR" : "BELUM SCAN"}
+                                {isCancelled
+                                  ? "BATAL"
+                                  : isPaid
+                                    ? "LUNAS"
+                                    : "PENDING"}
                               </span>
                             </div>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
+                            {!isCancelled && (
+                              <div>
+                                <span
+                                  className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                    isAttended
+                                      ? "bg-emerald-100 text-emerald-800"
+                                      : "bg-slate-100 text-slate-600"
+                                  }`}
+                                >
+                                  {isAttended ? "HADIR" : "BELUM SCAN"}
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            {!isCancelled && (
+                              <div className="inline-flex items-center gap-1.5 justify-end flex-wrap">
+                                {!isPaid && (
+                                  <button
+                                    onClick={() => handleConfirmPay(b.id)}
+                                    disabled={processingId === b.id}
+                                    className="px-2.5 py-1.5 rounded-lg bg-[#4D7762] hover:bg-[#3B6251] text-white font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                  >
+                                    {processingId === b.id ? (
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : (
+                                      <CheckCircle2 className="w-3 h-3" />
+                                    )}
+                                    Acc Bayar
+                                  </button>
+                                )}
+                                {!isAttended && (
+                                  <button
+                                    onClick={() => handleMarkAttended(b.id)}
+                                    disabled={processingId === b.id}
+                                    className="px-2.5 py-1.5 rounded-lg bg-[#162620] hover:bg-[#254336] text-white font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                  >
+                                    <UserCheck className="w-3 h-3" />
+                                    Hadir
+                                  </button>
+                                )}
+                                {!isAttended && (
+                                  <button
+                                    onClick={() => handleCancelBooking(b.id)}
+                                    disabled={processingId === b.id}
+                                    className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer disabled:opacity-50"
+                                    title="Batalkan Booking"
+                                  >
+                                    <XCircle className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile card list */}
+            <div className="md:hidden divide-y divide-[#F0EDE5]">
+              {paginatedBookings.length === 0 ? (
+                <div className="py-10 text-center text-[#5D6E66] text-sm">
+                  {bookingSearch
+                    ? `Tidak ada booking untuk "${bookingSearch}".`
+                    : "Belum ada data booking untuk filter ini."}
+                </div>
+              ) : (
+                paginatedBookings.map((b) => {
+                  const isCancelled = b.attendanceStatus === "CANCELLED";
+                  const isPaid = b.paymentStatus === "PAID";
+                  const isAttended = b.attendanceStatus === "ATTENDED";
+                  return (
+                    <div
+                      key={b.id}
+                      className={`p-4 space-y-3 ${isCancelled ? "opacity-50" : ""}`}
+                    >
+                      {/* Top row: code + status */}
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-mono font-black text-xs text-[#162620] bg-[#F6F4EF] px-2 py-1 rounded-lg">
+                          {b.bookingCode}
+                        </span>
+                        <div className="flex items-center gap-1 flex-wrap justify-end">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              isCancelled
+                                ? "bg-rose-50 text-rose-600"
+                                : isPaid
+                                  ? "bg-[#E9EFEA] text-[#254336]"
+                                  : "bg-amber-50 text-amber-700"
+                            }`}
+                          >
+                            {isCancelled
+                              ? "BATAL"
+                              : isPaid
+                                ? "LUNAS"
+                                : "PENDING"}
+                          </span>
                           {!isCancelled && (
-                            <div className="inline-flex items-center gap-1.5 justify-end flex-wrap">
-                              {!isPaid && (
-                                <button
-                                  onClick={() => handleConfirmPay(b.id)}
-                                  disabled={processingId === b.id}
-                                  className="px-2.5 py-1.5 rounded-lg bg-[#4D7762] hover:bg-[#3B6251] text-white font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                                >
-                                  {processingId === b.id ? (
-                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                  ) : (
-                                    <CheckCircle2 className="w-3 h-3" />
-                                  )}
-                                  Acc Bayar
-                                </button>
-                              )}
-                              {!isAttended && (
-                                <button
-                                  onClick={() => handleMarkAttended(b.id)}
-                                  disabled={processingId === b.id}
-                                  className="px-2.5 py-1.5 rounded-lg bg-[#162620] hover:bg-[#254336] text-white font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                                >
-                                  <UserCheck className="w-3 h-3" />
-                                  Hadir
-                                </button>
-                              )}
-                              {!isAttended && (
-                                <button
-                                  onClick={() => handleCancelBooking(b.id)}
-                                  disabled={processingId === b.id}
-                                  className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer disabled:opacity-50"
-                                  title="Batalkan Booking"
-                                >
-                                  <XCircle className="w-4 h-4" />
-                                </button>
-                              )}
-                            </div>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                isAttended
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-slate-100 text-slate-600"
+                              }`}
+                            >
+                              {isAttended ? "HADIR" : "BELUM SCAN"}
+                            </span>
                           )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                        </div>
+                      </div>
+                      {/* Customer info */}
+                      <div>
+                        <p className="font-bold text-sm text-[#162620]">
+                          {b.customerName}
+                        </p>
+                        <p className="text-xs text-[#5D6E66]">
+                          {b.customerPhone}
+                        </p>
+                      </div>
+                      {/* Class + payment */}
+                      <div className="bg-[#F6F4EF] rounded-xl px-3 py-2.5 space-y-1">
+                        <p className="font-bold text-xs text-[#162620]">
+                          {b.className}
+                        </p>
+                        <p className="text-[11px] text-[#5D6E66]">
+                          {b.instructor} • {formatWibDate(b.scheduleDateIso)} (
+                          {formatWibTime(b.startTime)})
+                        </p>
+                        <p className="font-bold text-xs text-[#162620] pt-1">
+                          Rp {b.amount.toLocaleString("id-ID")}{" "}
+                          <span className="font-normal text-[#5D6E66]">
+                            · {METHOD_LABEL[b.paymentMethod] || b.paymentMethod}
+                          </span>
+                        </p>
+                      </div>
+                      {/* Actions */}
+                      {!isCancelled && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {!isPaid && (
+                            <button
+                              onClick={() => handleConfirmPay(b.id)}
+                              disabled={processingId === b.id}
+                              className="flex-1 py-2 rounded-xl bg-[#4D7762] hover:bg-[#3B6251] text-white font-bold text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 touch-manipulation"
+                            >
+                              {processingId === b.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                              )}
+                              Acc Bayar
+                            </button>
+                          )}
+                          {!isAttended && (
+                            <button
+                              onClick={() => handleMarkAttended(b.id)}
+                              disabled={processingId === b.id}
+                              className="flex-1 py-2 rounded-xl bg-[#162620] hover:bg-[#254336] text-white font-bold text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 touch-manipulation"
+                            >
+                              <UserCheck className="w-3.5 h-3.5" />
+                              Hadir
+                            </button>
+                          )}
+                          {!isAttended && (
+                            <button
+                              onClick={() => handleCancelBooking(b.id)}
+                              disabled={processingId === b.id}
+                              className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 cursor-pointer disabled:opacity-50 touch-manipulation"
+                              title="Batalkan"
+                            >
+                              <XCircle className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
 
           <Pagination
@@ -865,12 +1020,12 @@ export default function ClassesClient({
           TAB 2: KELOLA JADWAL KELAS
       ══════════════════════════════════════════════════════════ */}
       {activeTab === "JADWAL" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Form Tambah / Edit */}
+        <div className="space-y-6">
+          {/* Form Tambah / Edit — full width, card lebar */}
           <form
             id="class-form"
             onSubmit={handleSubmitSchedule}
-            className="bg-white rounded-2xl border border-[#E6E2D8] p-5 shadow-sm space-y-4 h-fit"
+            className="bg-white rounded-2xl border border-[#E6E2D8] p-6 shadow-sm space-y-5"
           >
             <div className="flex items-center justify-between">
               <h2 className="text-base font-extrabold text-[#162620] flex items-center gap-2">
@@ -892,7 +1047,7 @@ export default function ClassesClient({
               )}
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-4 text-xs">
               {/* Foto Kelas */}
               <div>
                 <label className="font-bold text-[#4C5C54] block mb-1">
@@ -963,9 +1118,9 @@ export default function ClassesClient({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="font-bold text-[#4C5C54] block mb-1">
+                  <label className="font-bold text-[#4C5C54] block mb-1.5">
                     Instruktur *
                   </label>
                   <input
@@ -1044,9 +1199,9 @@ export default function ClassesClient({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="font-bold text-[#4C5C54] block mb-1">
+                  <label className="font-bold text-[#4C5C54] block mb-1.5">
                     Jam Mulai{" "}
                     <span className="text-[#4D7762] font-bold">(WIB)</span>
                   </label>
@@ -1064,9 +1219,9 @@ export default function ClassesClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="font-bold text-[#4C5C54] block mb-1">
+                  <label className="font-bold text-[#4C5C54] block mb-1.5">
                     Tarif Sesi (Rp)
                   </label>
                   <input
@@ -1110,7 +1265,8 @@ export default function ClassesClient({
           </form>
 
           {/* Daftar Kelas */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="space-y-4">
+            {" "}
             {/* Search Jadwal + Clone Mingguan */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="relative flex-1 max-w-xs">
@@ -1138,8 +1294,7 @@ export default function ClassesClient({
                 Terapkan Jadwal ke Minggu Depan (+7 Hari)
               </button>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-fit">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {filteredSchedules.length === 0 ? (
                 <div className="sm:col-span-2 py-10 text-center text-[#5D6E66] text-sm bg-white rounded-2xl border border-[#E6E2D8]">
                   {jadwalSearch

@@ -485,7 +485,7 @@ export default function TransactionsClient({
   ];
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-3.5 sm:p-6 lg:p-8 space-y-6">
       <AdminToast
         message={toast.message}
         type={toast.type}
@@ -747,7 +747,6 @@ export default function TransactionsClient({
             emptyMessage="Belum ada pembayaran"
             emptyDescription="Pembayaran dari checkout kelas konsumen akan muncul di sini."
           />
-
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -758,18 +757,18 @@ export default function TransactionsClient({
 
       {/* TAB 2: PENGELUARAN KASIR */}
       {activeTab === "EXPENSE" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Form Input Pengeluaran */}
           <form
             onSubmit={handleCreateExpense}
-            className="bg-white rounded-2xl border border-[#E6E2D8] p-5 shadow-sm space-y-4 h-fit"
+            className="lg:col-span-5 bg-white rounded-2xl border border-[#E6E2D8] p-4 sm:p-6 shadow-sm space-y-4 h-fit"
           >
             <h2 className="text-base font-extrabold text-[#162620] flex items-center gap-2">
               <Plus className="w-4 h-4 text-[#4D7762]" />
               Catat Pengeluaran Kasir
             </h2>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-4 text-xs">
               {/* Modern Kategori Picker */}
               <div className="relative">
                 <label className="font-bold text-[#4C5C54] block mb-1">
@@ -859,7 +858,7 @@ export default function TransactionsClient({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="font-bold text-[#4C5C54] block mb-1">
                     Nominal (Rp) *
@@ -923,7 +922,7 @@ export default function TransactionsClient({
           </form>
 
           {/* Daftar Pengeluaran */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-7 space-y-4">
             <div className="relative max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9BA8A0]" />
               <input
@@ -938,69 +937,120 @@ export default function TransactionsClient({
               />
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#E6E2D8] shadow-sm overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-[#E6E2D8] bg-[#F6F4EF] text-[11px] font-bold uppercase tracking-wider text-[#5D6E66]">
-                    <th className="py-3 px-4">Kode</th>
-                    <th className="py-3 px-4">Kategori & Keterangan</th>
-                    <th className="py-3 px-4">Sumber</th>
-                    <th className="py-3 px-4">Nominal</th>
-                    <th className="py-3 px-4 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F0EDE5] text-xs">
-                  {paginatedExpenses.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="py-10 text-center text-[#5D6E66]"
-                      >
-                        Belum ada catatan pengeluaran studio.
-                      </td>
+            <div className="bg-white rounded-2xl border border-[#E6E2D8] shadow-sm overflow-hidden">
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[500px]">
+                  <thead>
+                    <tr className="border-b border-[#E6E2D8] bg-[#F6F4EF] text-[11px] font-bold uppercase tracking-wider text-[#5D6E66]">
+                      <th className="py-3 px-4">Kode</th>
+                      <th className="py-3 px-4">Kategori & Keterangan</th>
+                      <th className="py-3 px-4">Sumber</th>
+                      <th className="py-3 px-4">Nominal</th>
+                      <th className="py-3 px-4 text-right">Aksi</th>
                     </tr>
-                  ) : (
-                    paginatedExpenses.map((item) => (
-                      <tr key={item.id} className="hover:bg-[#FAF9F6]">
-                        <td className="py-3 px-4 font-mono font-bold text-[#162620]">
-                          {item.code}
+                  </thead>
+                  <tbody className="divide-y divide-[#F0EDE5] text-xs">
+                    {paginatedExpenses.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="py-10 text-center text-[#5D6E66]"
+                        >
+                          Belum ada catatan pengeluaran studio.
                         </td>
-                        <td className="py-3 px-4">
+                      </tr>
+                    ) : (
+                      paginatedExpenses.map((item) => (
+                        <tr key={item.id} className="hover:bg-[#FAF9F6]">
+                          <td className="py-3 px-4 font-mono font-bold text-[#162620]">
+                            {item.code}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E9EFEA] text-[#3B6251] mb-1">
+                              {item.category}
+                            </span>
+                            <div className="font-bold text-[#162620]">
+                              {item.description}
+                            </div>
+                            <div className="text-[10px] text-[#5D6E66]">
+                              {new Date(item.date).toLocaleString("id-ID", {
+                                timeZone: "Asia/Jakarta",
+                              })}{" "}
+                              WIB
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#F6F4EF] text-[#162620]">
+                              {methodLabels[item.method] || item.method}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-extrabold text-rose-600">
+                            - Rp {item.amount.toLocaleString("id-ID")}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              onClick={() => handleDeleteExpense(item.id)}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 cursor-pointer"
+                              title="Hapus Pengeluaran"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile card list */}
+              <div className="md:hidden divide-y divide-[#F0EDE5]">
+                {paginatedExpenses.length === 0 ? (
+                  <div className="py-10 text-center text-[#5D6E66] text-sm">
+                    Belum ada catatan pengeluaran studio.
+                  </div>
+                ) : (
+                  paginatedExpenses.map((item) => (
+                    <div key={item.id} className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
                           <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E9EFEA] text-[#3B6251] mb-1">
                             {item.category}
                           </span>
-                          <div className="font-bold text-[#162620]">
+                          <p className="font-bold text-sm text-[#162620]">
                             {item.description}
-                          </div>
-                          <div className="text-[10px] text-[#5D6E66]">
-                            {new Date(item.date).toLocaleString("id-ID", {
-                              timeZone: "Asia/Jakarta",
-                            })}{" "}
-                            WIB
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#F6F4EF] text-[#162620]">
-                            {methodLabels[item.method] || item.method}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 font-extrabold text-rose-600">
+                          </p>
+                          <p className="text-[11px] text-[#5D6E66] font-mono">
+                            {item.code}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteExpense(item.id)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 cursor-pointer shrink-0"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#F6F4EF] text-[#162620]">
+                          {methodLabels[item.method] || item.method}
+                        </span>
+                        <span className="font-extrabold text-sm text-rose-600">
                           - Rp {item.amount.toLocaleString("id-ID")}
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <button
-                            onClick={() => handleDeleteExpense(item.id)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 cursor-pointer"
-                            title="Hapus Pengeluaran"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-[#9BA8A0]">
+                        {new Date(item.date).toLocaleString("id-ID", {
+                          timeZone: "Asia/Jakarta",
+                        })}{" "}
+                        WIB
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
             <Pagination

@@ -77,11 +77,11 @@ export function DataTable<T extends Record<string, any>>({
       </div>
 
       {/* MOBILE CARD VIEW */}
-      <div className="md:hidden flex flex-col p-4 gap-4 bg-slate-50/50">
+      <div className="md:hidden flex flex-col p-2.5 sm:p-4 gap-3 bg-slate-50/50">
         {data.map((item, idx) => (
           <div
             key={idx}
-            className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col gap-3"
+            className="bg-white rounded-xl shadow-sm border border-slate-200 p-3.5 sm:p-4 flex flex-col gap-2.5"
           >
             {columns.map((col) => {
               const isAction = col.key.toLowerCase().includes("action");
