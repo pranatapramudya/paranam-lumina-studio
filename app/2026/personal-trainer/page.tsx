@@ -26,7 +26,7 @@ export default async function JadwalDanBookingPage(props: {
     }
   }
 
-  const [bookingsRaw, schedulesRaw] = await Promise.all([
+  const [bookingsRaw, schedulesRaw, packagesRaw] = await Promise.all([
     prisma.booking.findMany({
       where: bookingWhere,
       include: {
@@ -54,6 +54,9 @@ export default async function JadwalDanBookingPage(props: {
         },
       },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
+    }),
+    prisma.package.findMany({
+      orderBy: { price: "asc" },
     }),
   ]);
 
@@ -88,7 +91,21 @@ export default async function JadwalDanBookingPage(props: {
     room: s.room,
   }));
 
+  const packages = packagesRaw.map((p) => ({
+    id: p.id,
+    name: p.name,
+    description: p.description || "",
+    price: p.price,
+    totalSessions: p.totalSessions,
+    validityDays: p.validityDays,
+    isActive: p.isActive,
+  }));
+
   return (
-    <ClassesClient initialBookings={bookings} initialSchedules={schedules} />
+    <ClassesClient
+      initialBookings={bookings}
+      initialSchedules={schedules}
+      initialPackages={packages}
+    />
   );
 }

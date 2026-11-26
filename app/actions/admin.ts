@@ -564,3 +564,110 @@ export async function createCashierBooking(data: {
     };
   }
 }
+
+// ── CRUD Paket & Tarif Studio ──────────────────────────────────────────────────
+export async function createStudioPackage(data: {
+  name: string;
+  description?: string;
+  price: number;
+  totalSessions: number;
+  validityDays: number;
+}) {
+  try {
+    await verifyAdmin();
+    if (!data.name.trim()) throw new Error("Nama paket wajib diisi.");
+    if (data.price <= 0) throw new Error("Harga paket harus lebih dari 0.");
+
+    const pkg = await prisma.package.create({
+      data: {
+        name: data.name.trim(),
+        description: data.description?.trim() || null,
+        price: Number(data.price),
+        totalSessions: Math.max(1, Number(data.totalSessions) || 1),
+        validityDays: Math.max(1, Number(data.validityDays) || 30),
+        isActive: true,
+      },
+    });
+
+    revalidatePath("/2026/personal-trainer");
+    revalidatePath("/2026/transactions");
+    return {
+      success: true,
+      pkg: {
+        id: pkg.id,
+        name: pkg.name,
+        description: pkg.description || "",
+        price: pkg.price,
+        totalSessions: pkg.totalSessions,
+        validityDays: pkg.validityDays,
+        isActive: pkg.isActive,
+      },
+    };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Gagal menambah paket." };
+  }
+}
+
+export async function updateStudioPackage(
+  id: string,
+  data: {
+    name: string;
+    description?: string;
+    price: number;
+    totalSessions: number;
+    validityDays: number;
+    isActive?: boolean;
+  },
+) {
+  try {
+    await verifyAdmin();
+    if (!data.name.trim()) throw new Error("Nama paket wajib diisi.");
+    if (data.price <= 0) throw new Error("Harga paket harus lebih dari 0.");
+
+    const pkg = await prisma.package.update({
+      where: { id },
+      data: {
+        name: data.name.trim(),
+        description: data.description?.trim() || null,
+        price: Number(data.price),
+        totalSessions: Math.max(1, Number(data.totalSessions) || 1),
+        validityDays: Math.max(1, Number(data.validityDays) || 30),
+        ...(typeof data.isActive === "boolean"
+          ? { isActive: data.isActive }
+          : {}),
+      },
+    });
+
+    revalidatePath("/2026/personal-trainer");
+    revalidatePath("/2026/transactions");
+    return {
+      success: true,
+      pkg: {
+        id: pkg.id,
+        name: pkg.name,
+        description: pkg.description || "",
+        price: pkg.price,
+        totalSessions: pkg.totalSessions,
+        validityDays: pkg.validityDays,
+        isActive: pkg.isActive,
+      },
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || "Gagal memperbarui paket.",
+    };
+  }
+}
+
+export async function deleteStudioPackage(id: string) {
+  try {
+    await verifyAdmin();
+    await prisma.package.delete({ where: { id } });
+    revalidatePath("/2026/personal-trainer");
+    revalidatePath("/2026/transactions");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Gagal menghapus paket." };
+  }
+}
