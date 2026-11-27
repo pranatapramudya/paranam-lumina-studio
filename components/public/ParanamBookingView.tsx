@@ -364,7 +364,7 @@ export default function ParanamBookingView({
   const studioAddress = studioInfo?.address || "Depok, Jawa Barat";
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#F6F4EF] text-[#162620] font-sans flex flex-col selection:bg-[#527C66]/20 overflow-x-hidden">
+    <div className="min-h-[100dvh] w-full bg-[#F6F4EF] text-[#162620] font-sans flex flex-col selection:bg-[#527C66]/20 overflow-x-clip">
       {/* ===== NAVBAR SAGE CERAH + TEKS BOLD PUTIH TERANG ===== */}
       <nav className="sticky top-0 z-40 w-full bg-[#4D7762] border-b border-[#3B6251] shadow-md pt-[env(safe-area-inset-top)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-[70px] flex items-center justify-between gap-3">
