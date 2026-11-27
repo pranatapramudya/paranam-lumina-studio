@@ -14,14 +14,7 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Wallet,
-  Plus,
-  Trash2,
-  Loader2,
   Banknote,
-  X,
-  ChevronDown,
-  CalendarDays,
-  Sparkles,
 } from "lucide-react";
 import {
   confirmBookingPayment,
@@ -34,28 +27,16 @@ import { Pagination } from "@/components/ui/Pagination";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-
-interface TransactionItem {
-  id: string;
-  bookingCode: string;
-  memberName: string;
-  memberPhone: string;
-  type: string;
-  amount: number;
-  method: string;
-  status: "PENDING" | "PAID" | "REJECTED";
-  date: string;
-}
-
-interface ExpenseItem {
-  id: string;
-  code: string;
-  category: string;
-  description: string;
-  amount: number;
-  method: string;
-  date: string;
-}
+import {
+  TransactionItem,
+  ExpenseItem,
+  ScheduleOption,
+  PackageOption,
+  methodLabels,
+} from "./_components/types";
+import { VerifyPaymentModal } from "./_components/VerifyPaymentModal";
+import { ExpenseTab } from "./_components/ExpenseTab";
+import { CashierModal } from "./_components/CashierModal";
 
 const statusConfig = {
   PENDING: {
@@ -74,39 +55,6 @@ const statusConfig = {
     className: "bg-red-50 text-red-700 border-red-200",
   },
 };
-
-const methodLabels: Record<string, string> = {
-  QRIS_MANUAL: "QRIS",
-  TRANSFER_MANUAL: "Transfer BCA",
-  CASH_STUDIO: "Tunai Studio",
-  PACKAGE_CREDIT: "Credit",
-};
-
-const EXPENSE_CATEGORIES = [
-  "Fee Instruktur",
-  "Perlengkapan Studio",
-  "Listrik & Air",
-  "Kebersihan",
-  "Konsumsi / Air Mineral",
-  "Lainnya",
-];
-
-interface ScheduleOption {
-  id: string;
-  title: string;
-  instructor: string;
-  dateLabel: string;
-  startTime: string;
-  price: number;
-  remaining: number;
-}
-
-interface PackageOption {
-  id: string;
-  name: string;
-  price: number;
-  totalSessions: number;
-}
 
 export default function TransactionsClient({
   initialTransactions,
@@ -493,107 +441,14 @@ export default function TransactionsClient({
         onDismiss={() => setToast((s) => ({ ...s, visible: false }))}
       />
 
-      {verifyTarget && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-[#162620]/40 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white rounded-3xl border border-[#E6E2D8] shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 bg-[#C8E0D5] border-b border-[#A8C8B8] flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-extrabold text-[#1D3D30]">
-                  Konfirmasi Pembayaran Lunas
-                </h3>
-                <p className="text-[11px] text-[#3B6251]">
-                  {verifyTarget.memberName} • {verifyTarget.bookingCode}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => !isVerifying && setVerifyTarget(null)}
-                className="p-1.5 rounded-lg text-[#2A5040] hover:bg-white/60 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4 text-xs">
-              <div className="p-3.5 rounded-2xl bg-[#F6F4EF] border border-[#E6E2D8] flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#5D6E66] block">
-                    Total Tagihan (
-                    {methodLabels[verifyTarget.method] || verifyTarget.method})
-                  </span>
-                  <span className="text-base font-black text-[#162620]">
-                    Rp {verifyTarget.amount.toLocaleString("id-ID")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Kalkulator Uang Diterima & Kembalian untuk Tunai di Tempat */}
-              <div className="p-3.5 rounded-2xl bg-[#E9EFEA] border border-[#C8E0D5] space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <label className="font-bold text-[#2A5040]">
-                    Uang Tunai Diterima (Rp)
-                  </label>
-                  <div className="flex gap-1">
-                    {[
-                      { label: "Pas", val: verifyTarget.amount },
-                      { label: "100rb", val: 100000 },
-                      { label: "150rb", val: 150000 },
-                      { label: "200rb", val: 200000 },
-                    ].map((q) => (
-                      <button
-                        key={q.label}
-                        type="button"
-                        onClick={() => setVerifyCashReceived(String(q.val))}
-                        className="px-2 py-0.5 rounded-md bg-white hover:bg-[#4D7762] hover:text-white text-[10px] font-bold text-[#2A5040] border border-[#A8C8B8] cursor-pointer transition-colors"
-                      >
-                        {q.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <input
-                  type="number"
-                  value={verifyCashReceived}
-                  onChange={(e) => setVerifyCashReceived(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#A8C8B8] rounded-xl font-bold text-sm text-[#162620]"
-                />
-                <div className="flex items-center justify-between pt-1 border-t border-[#C8E0D5]">
-                  <span className="font-bold text-[#3B6251]">
-                    Uang Kembalian
-                  </span>
-                  <span className="text-base font-black text-[#4D7762]">
-                    Rp{" "}
-                    {Math.max(
-                      0,
-                      (Number(verifyCashReceived) || 0) - verifyTarget.amount,
-                    ).toLocaleString("id-ID")}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  disabled={isVerifying}
-                  onClick={() => setVerifyTarget(null)}
-                  className="flex-1 py-2.5 rounded-xl bg-[#F6F4EF] hover:bg-[#E6E2D8] font-bold text-[#5D6E66] cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  disabled={isVerifying}
-                  onClick={handleVerify}
-                  className="flex-1 py-2.5 rounded-xl bg-[#4D7762] hover:bg-[#3B6251] text-white font-bold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                >
-                  {isVerifying && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Acc Lunas
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <VerifyPaymentModal
+        verifyTarget={verifyTarget}
+        setVerifyTarget={setVerifyTarget}
+        verifyCashReceived={verifyCashReceived}
+        setVerifyCashReceived={setVerifyCashReceived}
+        isVerifying={isVerifying}
+        handleVerify={handleVerify}
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -757,715 +612,59 @@ export default function TransactionsClient({
 
       {/* TAB 2: PENGELUARAN KASIR */}
       {activeTab === "EXPENSE" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Form Input Pengeluaran */}
-          <form
-            onSubmit={handleCreateExpense}
-            className="lg:col-span-5 bg-white rounded-2xl border border-[#E6E2D8] p-4 sm:p-6 shadow-sm space-y-4 h-fit"
-          >
-            <h2 className="text-base font-extrabold text-[#162620] flex items-center gap-2">
-              <Plus className="w-4 h-4 text-[#4D7762]" />
-              Catat Pengeluaran Kasir
-            </h2>
-
-            <div className="space-y-4 text-xs">
-              {/* Modern Kategori Picker */}
-              <div className="relative">
-                <label className="font-bold text-[#4C5C54] block mb-1">
-                  Kategori *
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCategoryPickerOpen((v) => !v);
-                    setMethodPickerOpen(false);
-                  }}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2.5 bg-[#F6F4EF] hover:bg-[#E9EFEA]/60 border border-[#DCD7CA] rounded-xl font-semibold text-[#162620] transition-colors cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>
-                      {expCategory === "Fee Instruktur"
-                        ? "👨‍🏫"
-                        : expCategory === "Perlengkapan Studio"
-                          ? "🧘"
-                          : expCategory === "Listrik & Air"
-                            ? "⚡"
-                            : expCategory === "Kebersihan"
-                              ? "🧹"
-                              : expCategory === "Konsumsi / Air Mineral"
-                                ? "💧"
-                                : "📝"}
-                    </span>
-                    <span>{expCategory}</span>
-                  </span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-[#5D6E66] transition-transform ${categoryPickerOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
-                {categoryPickerOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-30"
-                      onClick={() => setCategoryPickerOpen(false)}
-                    />
-                    <div className="absolute left-0 top-full mt-1.5 w-full bg-white border border-[#E6E2D8] rounded-2xl shadow-xl z-40 overflow-hidden">
-                      {[
-                        { label: "Fee Instruktur", emoji: "👨‍🏫" },
-                        { label: "Perlengkapan Studio", emoji: "🧘" },
-                        { label: "Listrik & Air", emoji: "⚡" },
-                        { label: "Kebersihan", emoji: "🧹" },
-                        { label: "Konsumsi / Air Mineral", emoji: "💧" },
-                        { label: "Lainnya", emoji: "📝" },
-                      ].map((cat) => (
-                        <button
-                          key={cat.label}
-                          type="button"
-                          onClick={() => {
-                            setExpCategory(cat.label);
-                            setCategoryPickerOpen(false);
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-left transition-colors cursor-pointer ${
-                            expCategory === cat.label
-                              ? "bg-[#E9EFEA] text-[#162620] font-bold"
-                              : "text-[#162620] hover:bg-[#F6F4EF]"
-                          }`}
-                        >
-                          <span className="text-base">{cat.emoji}</span>
-                          <span>{cat.label}</span>
-                          {expCategory === cat.label && (
-                            <span className="ml-auto text-[#4D7762] font-black">
-                              ✓
-                            </span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div>
-                <label className="font-bold text-[#4C5C54] block mb-1">
-                  Keterangan Pengeluaran *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="cth: Beli 2 galon air mineral & tisu"
-                  value={expDesc}
-                  onChange={(e) => setExpDesc(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-[#F6F4EF] border border-[#DCD7CA] rounded-xl font-semibold text-[#162620]"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="font-bold text-[#4C5C54] block mb-1">
-                    Nominal (Rp) *
-                  </label>
-                  <input
-                    type="number"
-                    min={1000}
-                    required
-                    placeholder="50000"
-                    value={expAmount}
-                    onChange={(e) => setExpAmount(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#F6F4EF] border border-[#DCD7CA] rounded-xl font-semibold text-[#162620]"
-                  />
-                </div>
-                {/* Modern Sumber Dana Picker */}
-                <div className="relative">
-                  <label className="font-bold text-[#4C5C54] block mb-1">
-                    Sumber Dana
-                  </label>
-                  <div className="flex gap-1.5">
-                    {[
-                      { value: "CASH_STUDIO", label: "Tunai", emoji: "💵" },
-                      {
-                        value: "TRANSFER_MANUAL",
-                        label: "Transfer",
-                        emoji: "🏦",
-                      },
-                      { value: "QRIS_MANUAL", label: "QRIS", emoji: "📱" },
-                    ].map((m) => (
-                      <button
-                        key={m.value}
-                        type="button"
-                        onClick={() => setExpMethod(m.value as any)}
-                        className={`flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl text-[10px] font-bold transition-colors cursor-pointer border ${
-                          expMethod === m.value
-                            ? "bg-[#4D7762] text-white border-[#4D7762]"
-                            : "bg-[#F6F4EF] text-[#5D6E66] border-[#DCD7CA] hover:border-[#4D7762]"
-                        }`}
-                      >
-                        <span className="text-sm">{m.emoji}</span>
-                        <span>{m.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSavingExp}
-              className="w-full py-3 bg-[#4D7762] hover:bg-[#3B6251] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              {isSavingExp ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Plus className="w-4 h-4" />
-              )}
-              Simpan Pengeluaran
-            </button>
-          </form>
-
-          {/* Daftar Pengeluaran */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="relative max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9BA8A0]" />
-              <input
-                type="text"
-                placeholder="Cari keterangan atau kategori..."
-                value={expSearch}
-                onChange={(e) => {
-                  setExpSearch(e.target.value);
-                  setExpPage(1);
-                }}
-                className="w-full pl-9 pr-3 py-2 bg-white border border-[#E6E2D8] rounded-xl text-xs font-semibold text-[#162620] outline-none focus:ring-2 focus:ring-[#4D7762]"
-              />
-            </div>
-
-            <div className="bg-white rounded-2xl border border-[#E6E2D8] shadow-sm overflow-hidden">
-              {/* Desktop table */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[500px]">
-                  <thead>
-                    <tr className="border-b border-[#E6E2D8] bg-[#F6F4EF] text-[11px] font-bold uppercase tracking-wider text-[#5D6E66]">
-                      <th className="py-3 px-4">Kode</th>
-                      <th className="py-3 px-4">Kategori & Keterangan</th>
-                      <th className="py-3 px-4">Sumber</th>
-                      <th className="py-3 px-4">Nominal</th>
-                      <th className="py-3 px-4 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#F0EDE5] text-xs">
-                    {paginatedExpenses.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={5}
-                          className="py-10 text-center text-[#5D6E66]"
-                        >
-                          Belum ada catatan pengeluaran studio.
-                        </td>
-                      </tr>
-                    ) : (
-                      paginatedExpenses.map((item) => (
-                        <tr key={item.id} className="hover:bg-[#FAF9F6]">
-                          <td className="py-3 px-4 font-mono font-bold text-[#162620]">
-                            {item.code}
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E9EFEA] text-[#3B6251] mb-1">
-                              {item.category}
-                            </span>
-                            <div className="font-bold text-[#162620]">
-                              {item.description}
-                            </div>
-                            <div className="text-[10px] text-[#5D6E66]">
-                              {new Date(item.date).toLocaleString("id-ID", {
-                                timeZone: "Asia/Jakarta",
-                              })}{" "}
-                              WIB
-                            </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#F6F4EF] text-[#162620]">
-                              {methodLabels[item.method] || item.method}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 font-extrabold text-rose-600">
-                            - Rp {item.amount.toLocaleString("id-ID")}
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <button
-                              onClick={() => handleDeleteExpense(item.id)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 cursor-pointer"
-                              title="Hapus Pengeluaran"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile card list */}
-              <div className="md:hidden divide-y divide-[#F0EDE5]">
-                {paginatedExpenses.length === 0 ? (
-                  <div className="py-10 text-center text-[#5D6E66] text-sm">
-                    Belum ada catatan pengeluaran studio.
-                  </div>
-                ) : (
-                  paginatedExpenses.map((item) => (
-                    <div key={item.id} className="p-4 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E9EFEA] text-[#3B6251] mb-1">
-                            {item.category}
-                          </span>
-                          <p className="font-bold text-sm text-[#162620]">
-                            {item.description}
-                          </p>
-                          <p className="text-[11px] text-[#5D6E66] font-mono">
-                            {item.code}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteExpense(item.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 cursor-pointer shrink-0"
-                          title="Hapus"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#F6F4EF] text-[#162620]">
-                          {methodLabels[item.method] || item.method}
-                        </span>
-                        <span className="font-extrabold text-sm text-rose-600">
-                          - Rp {item.amount.toLocaleString("id-ID")}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-[#9BA8A0]">
-                        {new Date(item.date).toLocaleString("id-ID", {
-                          timeZone: "Asia/Jakarta",
-                        })}{" "}
-                        WIB
-                      </p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <Pagination
-              currentPage={expPage}
-              totalPages={expTotalPages}
-              onPageChange={setExpPage}
-            />
-          </div>
-        </div>
+        <ExpenseTab
+          expCategory={expCategory}
+          setExpCategory={setExpCategory}
+          categoryPickerOpen={categoryPickerOpen}
+          setCategoryPickerOpen={setCategoryPickerOpen}
+          setMethodPickerOpen={setMethodPickerOpen}
+          expDesc={expDesc}
+          setExpDesc={setExpDesc}
+          expAmount={expAmount}
+          setExpAmount={setExpAmount}
+          expMethod={expMethod}
+          setExpMethod={setExpMethod}
+          expSearch={expSearch}
+          setExpSearch={setExpSearch}
+          isSavingExp={isSavingExp}
+          paginatedExpenses={paginatedExpenses}
+          expPage={expPage}
+          expTotalPages={expTotalPages}
+          setExpPage={setExpPage}
+          handleCreateExpense={handleCreateExpense}
+          handleDeleteExpense={handleDeleteExpense}
+        />
       )}
 
       {/* Modal Transaksi Kasir (Tunai / Non-Cashless / Pilihan Paket) */}
-      {cashierOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-[#162620]/40 backdrop-blur-xs">
-          <div className="w-full max-w-lg bg-white rounded-3xl border border-[#E6E2D8] shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col">
-            <div className="px-6 py-4 bg-[#C8E0D5] border-b border-[#A8C8B8] flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#4D7762] text-white flex items-center justify-center">
-                  <Banknote className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-extrabold text-[#1D3D30]">
-                    Input Pembayaran Kasir
-                  </h3>
-                  <p className="text-[11px] text-[#3B6251]">
-                    Untuk tamu bayar Tunai / Walk-in / Pilih Paket
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setCashierOpen(false)}
-                className="p-1.5 rounded-lg text-[#2A5040] hover:bg-white/60 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={handleSaveCashier}
-              className="p-6 space-y-4 overflow-y-auto text-xs"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-[#4C5C54] block mb-1">
-                    Nama Tamu *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="cth: Rina Kusuma"
-                    value={cashierName}
-                    onChange={(e) => setCashierName(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#F6F4EF] border border-[#DCD7CA] rounded-xl font-semibold text-[#162620]"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-[#4C5C54] block mb-1">
-                    No. WhatsApp{" "}
-                    <span className="font-normal text-[#7A8881]">
-                      (Opsional)
-                    </span>
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="Kosongkan jika tamu tanpa HP"
-                    value={cashierPhone}
-                    onChange={(e) => setCashierPhone(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#F6F4EF] border border-[#DCD7CA] rounded-xl font-semibold text-[#162620]"
-                  />
-                </div>
-              </div>
-
-              {/* Modern Selector: Jadwal Kelas */}
-              <div className="relative">
-                <label className="font-bold text-[#4C5C54] block mb-1">
-                  Pilih Jadwal Kelas *
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSchedulePickerOpen((v) => !v);
-                    setPackagePickerOpen(false);
-                  }}
-                  className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-[#F6F4EF] hover:bg-[#E9EFEA]/60 border border-[#DCD7CA] rounded-xl text-left transition-colors cursor-pointer"
-                >
-                  {selectedSchedule ? (
-                    <div className="min-w-0 flex-1">
-                      <p className="font-extrabold text-[#162620] truncate">
-                        {selectedSchedule.title}
-                      </p>
-                      <p className="text-[11px] text-[#5D6E66] mt-0.5">
-                        {selectedSchedule.dateLabel} •{" "}
-                        {selectedSchedule.startTime} WIB •{" "}
-                        <span className="font-bold text-[#4D7762]">
-                          Sisa {selectedSchedule.remaining} matras
-                        </span>
-                      </p>
-                    </div>
-                  ) : (
-                    <span className="font-semibold text-[#7A8881]">
-                      Belum ada jadwal aktif
-                    </span>
-                  )}
-                  <ChevronDown
-                    className={`w-4 h-4 text-[#5D6E66] shrink-0 transition-transform ${
-                      schedulePickerOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {schedulePickerOpen && (
-                  <div className="mt-1.5 max-h-52 overflow-y-auto bg-white border border-[#DCD7CA] rounded-2xl shadow-xl p-1.5 space-y-1">
-                    {activeSchedules.length === 0 ? (
-                      <p className="p-3 text-center text-[#5D6E66]">
-                        Belum ada jadwal aktif
-                      </p>
-                    ) : (
-                      activeSchedules.map((s) => {
-                        const isSelected = s.id === cashierScheduleId;
-                        const isFull = s.remaining <= 0;
-                        return (
-                          <button
-                            key={s.id}
-                            type="button"
-                            disabled={isFull}
-                            onClick={() => {
-                              setCashierScheduleId(s.id);
-                              setSchedulePickerOpen(false);
-                            }}
-                            className={`w-full flex items-center justify-between gap-2 p-2.5 rounded-xl text-left transition-colors cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
-                              isSelected
-                                ? "bg-[#4D7762] text-white"
-                                : "hover:bg-[#F6F4EF] text-[#162620]"
-                            }`}
-                          >
-                            <div className="min-w-0">
-                              <p className="font-bold truncate">{s.title}</p>
-                              <p
-                                className={`text-[10px] ${isSelected ? "text-white/85" : "text-[#5D6E66]"}`}
-                              >
-                                <CalendarDays className="w-3 h-3 inline mr-1" />
-                                {s.dateLabel} • {s.startTime} WIB •{" "}
-                                {s.instructor}
-                              </p>
-                            </div>
-                            <div className="text-right shrink-0">
-                              <p className="font-extrabold">
-                                Rp {s.price.toLocaleString("id-ID")}
-                              </p>
-                              <span
-                                className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                  isSelected
-                                    ? "bg-white/20 text-white"
-                                    : isFull
-                                      ? "bg-rose-50 text-rose-600"
-                                      : "bg-[#E9EFEA] text-[#3B6251]"
-                                }`}
-                              >
-                                {isFull ? "Penuh" : `Sisa ${s.remaining}`}
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* 2 Opsi Jenis Pembayaran Kasir: Per Kelas vs Paket & Tarif */}
-              <div>
-                <label className="font-bold text-[#4C5C54] block mb-1.5">
-                  Jenis Pembayaran *
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCashierPackageId("DROP_IN");
-                      setPackagePickerOpen(false);
-                    }}
-                    className={`py-2.5 px-3 rounded-xl font-bold text-left border transition-colors cursor-pointer ${
-                      cashierPackageId === "DROP_IN"
-                        ? "bg-[#4D7762] text-white border-[#4D7762]"
-                        : "bg-[#F6F4EF] text-[#162620] border-[#DCD7CA] hover:border-[#4D7762]"
-                    }`}
-                  >
-                    <p className="text-xs font-extrabold">Per Jadwal Kelas</p>
-                    <p
-                      className={`text-[10px] mt-0.5 ${
-                        cashierPackageId === "DROP_IN"
-                          ? "text-white/85"
-                          : "text-[#5D6E66]"
-                      }`}
-                    >
-                      Tanpa paket · Tarif kelas
-                    </p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (cashierPackageId === "DROP_IN" && activePackages[0]) {
-                        setCashierPackageId(activePackages[0].id);
-                      }
-                      setPackagePickerOpen(true);
-                      setSchedulePickerOpen(false);
-                    }}
-                    disabled={activePackages.length === 0}
-                    className={`py-2.5 px-3 rounded-xl font-bold text-left border transition-colors cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
-                      cashierPackageId !== "DROP_IN"
-                        ? "bg-[#4D7762] text-white border-[#4D7762]"
-                        : "bg-[#F6F4EF] text-[#162620] border-[#DCD7CA] hover:border-[#4D7762]"
-                    }`}
-                  >
-                    <p className="text-xs font-extrabold">Paket & Tarif</p>
-                    <p
-                      className={`text-[10px] mt-0.5 ${
-                        cashierPackageId !== "DROP_IN"
-                          ? "text-white/85"
-                          : "text-[#5D6E66]"
-                      }`}
-                    >
-                      {activePackages.length > 0
-                        ? `${activePackages.length} paket tersedia`
-                        : "Belum ada paket"}
-                    </p>
-                  </button>
-                </div>
-              </div>
-
-              {/* Modern Selector: Pilihan Paket / Tarif (hanya tampil saat mode Paket dipilih) */}
-              {cashierPackageId !== "DROP_IN" && (
-                <div className="relative">
-                  <label className="font-bold text-[#4C5C54] block mb-1">
-                    Pilih Paket Sesi *
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPackagePickerOpen((v) => !v);
-                      setSchedulePickerOpen(false);
-                    }}
-                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-[#F6F4EF] hover:bg-[#E9EFEA]/60 border border-[#DCD7CA] rounded-xl text-left transition-colors cursor-pointer"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-extrabold text-[#162620] truncate">
-                        {selectedPackage
-                          ? `Paket: ${selectedPackage.name}`
-                          : "Single Visit / Drop-in"}
-                      </p>
-                      <p className="text-[11px] text-[#4D7762] font-bold mt-0.5">
-                        {selectedPackage
-                          ? `${selectedPackage.totalSessions} Sesi • `
-                          : "1x Pertemuan • "}
-                        Rp {cashierAmount.toLocaleString("id-ID")}
-                      </p>
-                    </div>
-                    <ChevronDown
-                      className={`w-4 h-4 text-[#5D6E66] shrink-0 transition-transform ${
-                        packagePickerOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {packagePickerOpen && (
-                    <div className="mt-1.5 max-h-52 overflow-y-auto bg-white border border-[#DCD7CA] rounded-2xl shadow-xl p-1.5 space-y-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCashierPackageId("DROP_IN");
-                          setPackagePickerOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between gap-2 p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
-                          cashierPackageId === "DROP_IN"
-                            ? "bg-[#4D7762] text-white"
-                            : "hover:bg-[#F6F4EF] text-[#162620]"
-                        }`}
-                      >
-                        <div>
-                          <p className="font-bold">Single Visit / Drop-in</p>
-                          <p
-                            className={`text-[10px] ${cashierPackageId === "DROP_IN" ? "text-white/85" : "text-[#5D6E66]"}`}
-                          >
-                            1x Pertemuan sesuai tarif kelas
-                          </p>
-                        </div>
-                        <span className="font-extrabold shrink-0">
-                          Rp{" "}
-                          {(selectedSchedule?.price || 90000).toLocaleString(
-                            "id-ID",
-                          )}
-                        </span>
-                      </button>
-
-                      {activePackages.map((p) => {
-                        const isSelected = cashierPackageId === p.id;
-                        return (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => {
-                              setCashierPackageId(p.id);
-                              setPackagePickerOpen(false);
-                            }}
-                            className={`w-full flex items-center justify-between gap-2 p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
-                              isSelected
-                                ? "bg-[#4D7762] text-white"
-                                : "hover:bg-[#F6F4EF] text-[#162620]"
-                            }`}
-                          >
-                            <div className="min-w-0">
-                              <p className="font-bold truncate">{p.name}</p>
-                              <p
-                                className={`text-[10px] ${isSelected ? "text-white/85" : "text-[#5D6E66]"}`}
-                              >
-                                {p.totalSessions} Sesi Studio
-                              </p>
-                            </div>
-                            <span className="font-extrabold shrink-0">
-                              Rp {p.price.toLocaleString("id-ID")}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div>
-                <label className="font-bold text-[#4C5C54] block mb-1.5">
-                  Metode Pembayaran
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "CASH_STUDIO", label: "Tunai (Cash)" },
-                    { id: "TRANSFER_MANUAL", label: "Transfer BCA" },
-                    { id: "QRIS_MANUAL", label: "QRIS" },
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setCashierMethod(m.id as any)}
-                      className={`py-2 px-2 rounded-xl font-bold border transition-colors cursor-pointer ${
-                        cashierMethod === m.id
-                          ? "bg-[#4D7762] text-white border-[#4D7762]"
-                          : "bg-[#F6F4EF] text-[#4C5C54] border-[#DCD7CA]"
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Kalkulator Uang Tunai & Kembalian */}
-              <div className="p-3.5 rounded-2xl bg-[#E9EFEA] border border-[#C8E0D5] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#2A5040]">
-                    Total Tagihan
-                  </span>
-                  <span className="text-base font-black text-[#1D3D30]">
-                    Rp {cashierAmount.toLocaleString("id-ID")}
-                  </span>
-                </div>
-                {cashierMethod === "CASH_STUDIO" && (
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#C8E0D5]">
-                    <div>
-                      <label className="text-[11px] font-bold text-[#3B6251] block mb-1">
-                        Uang Diterima (Rp)
-                      </label>
-                      <input
-                        type="number"
-                        placeholder={String(cashierAmount)}
-                        value={cashReceived}
-                        onChange={(e) => setCashReceived(e.target.value)}
-                        className="w-full px-3 py-1.5 bg-white border border-[#A8C8B8] rounded-xl font-bold text-[#162620]"
-                      />
-                    </div>
-                    <div className="flex flex-col justify-center items-end">
-                      <span className="text-[11px] font-bold text-[#3B6251]">
-                        Kembalian
-                      </span>
-                      <span className="text-sm font-black text-[#4D7762]">
-                        Rp {cashChange.toLocaleString("id-ID")}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setCashierOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-[#F6F4EF] hover:bg-[#E6E2D8] font-bold text-[#5D6E66] cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSavingCashier || !cashierScheduleId}
-                  className="flex-1 py-2.5 rounded-xl bg-[#4D7762] hover:bg-[#3B6251] text-white font-bold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                >
-                  {isSavingCashier && (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  )}
-                  Catat Lunas & Terbitkan Tiket
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CashierModal
+        cashierOpen={cashierOpen}
+        setCashierOpen={setCashierOpen}
+        cashierName={cashierName}
+        setCashierName={setCashierName}
+        cashierPhone={cashierPhone}
+        setCashierPhone={setCashierPhone}
+        cashierScheduleId={cashierScheduleId}
+        setCashierScheduleId={setCashierScheduleId}
+        cashierPackageId={cashierPackageId}
+        setCashierPackageId={setCashierPackageId}
+        cashierMethod={cashierMethod}
+        setCashierMethod={setCashierMethod}
+        cashReceived={cashReceived}
+        setCashReceived={setCashReceived}
+        isSavingCashier={isSavingCashier}
+        schedulePickerOpen={schedulePickerOpen}
+        setSchedulePickerOpen={setSchedulePickerOpen}
+        packagePickerOpen={packagePickerOpen}
+        setPackagePickerOpen={setPackagePickerOpen}
+        activeSchedules={activeSchedules}
+        activePackages={activePackages}
+        selectedSchedule={selectedSchedule}
+        selectedPackage={selectedPackage}
+        cashierAmount={cashierAmount}
+        cashChange={cashChange}
+        handleSaveCashier={handleSaveCashier}
+      />
     </div>
   );
 }
